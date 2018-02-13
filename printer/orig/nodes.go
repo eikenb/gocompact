@@ -418,15 +418,6 @@ func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool) 
 			return
 		}
 	}
-
-	// part of vertical_compression patchset
-	// !hasComments && srcIsShort
-	srcIsShort := p.compressibleStruct(list)
-	if !hasComments && srcIsShort {
-		p.compressedStruct(lbrace, list)
-		return
-	}
-
 	// hasComments || !srcIsOneLine
 
 	p.print(blank, lbrace, token.LBRACE, indent)
@@ -974,17 +965,8 @@ func (p *printer) stmtList(list []ast.Stmt, nindent int, nextIsRBrace bool) {
 	}
 }
 
-// from vertical_compression patchset
-func (p *printer) block(b *ast.BlockStmt, nindent int) {
-	if p.compressedBlock(b) {
-		return
-	}
-	p.fatblock(b, nindent)
-}
-
 // block prints an *ast.BlockStmt; it always spans at least two lines.
-// renamed fatblock with above overriding for vertical_compression patchset
-func (p *printer) fatblock(b *ast.BlockStmt, nindent int) {
+func (p *printer) block(b *ast.BlockStmt, nindent int) {
 	p.print(b.Lbrace, token.LBRACE)
 	p.stmtList(b.List, nindent, true)
 	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
@@ -1196,18 +1178,7 @@ func (p *printer) stmt(stmt ast.Stmt, nextIsRBrace bool) {
 	case *ast.IfStmt:
 		p.print(token.IF)
 		p.controlClause(false, s.Init, s.Cond, nil)
-		// from vertical_compression patchset
-		// make sure else goes on its own line
-		if len(s.Body.List) == 1 && s.Else != nil {
-			if p.openCompressedBlock(s.Body) {
-				p.print(formfeed)
-				p.print(s.Body.Rbrace, token.RBRACE)
-			} else {
-				p.fatblock(s.Body, 1)
-			}
-		} else {
-			p.block(s.Body, 1)
-		}
+		p.block(s.Body, 1)
 		if s.Else != nil {
 			p.print(blank, token.ELSE, blank)
 			switch s.Else.(type) {

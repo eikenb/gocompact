@@ -1,8 +1,7 @@
-diff --git a/printer/nodes.go b/printer/nodes.go
-index 4eaadeb..6ee60dd 100644
---- a/printer/nodes.go
-+++ b/printer/nodes.go
-@@ -418,6 +418,15 @@ func (p *printer) fieldList(fields *ast.FieldList, isStruct, isIncomplete bool)
+diff -u printer/orig/nodes.go printer/nodes.go
+--- printer/orig/nodes.go	2018-02-13 13:10:11.484125696 -0800
++++ printer/nodes.go	2018-02-13 13:10:39.079961468 -0800
+@@ -418,6 +418,15 @@
  			return
  		}
  	}
@@ -18,7 +17,7 @@ index 4eaadeb..6ee60dd 100644
  	// hasComments || !srcIsOneLine
  
  	p.print(blank, lbrace, token.LBRACE, indent)
-@@ -965,8 +974,17 @@ func (p *printer) stmtList(list []ast.Stmt, nindent int, nextIsRBrace bool) {
+@@ -965,8 +974,17 @@
  	}
  }
  
@@ -37,7 +36,7 @@ index 4eaadeb..6ee60dd 100644
  	p.print(b.Lbrace, token.LBRACE)
  	p.stmtList(b.List, nindent, true)
  	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
-@@ -1178,7 +1196,18 @@ func (p *printer) stmt(stmt ast.Stmt, nextIsRBrace bool) {
+@@ -1178,7 +1196,18 @@
  	case *ast.IfStmt:
  		p.print(token.IF)
  		p.controlClause(false, s.Init, s.Cond, nil)

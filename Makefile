@@ -2,51 +2,41 @@
 help:
 	@echo Usage: make [command]
 	@echo Commands:
-	@echo "	all 	- install, unpatch"
-	@echo "	install 	- patch -> go install"
-	@echo "	patch 	- apply all patches"
-	@echo "	unpatch - undo/unapply all patches"
-	@echo "	refresh - update the quilt patchset"
-	@echo "	update 	- pull in new go source from GOROOT"
-	@echo "	clean 	- unpatch & clean up git"
+	@echo "	toggle-patch   - remove/apply patch"
+	@echo "	refresh-patch  - update the patch"
+	@echo "	update-printer - pull in new go source from GOROOT"
+	@echo "	clean          - cleans up any junk (eg. .orig files)"
 	@echo ""
-	@echo "To update binary run... (* requires go workspace *)"
-	@echo "	make all->clean"
+	@echo "To update to new printer source..."
+	@echo "	update-printer-> toggle-patch-> [fix->] refresh-patch-> commit"
 	@echo ""
-	@echo "To update to new source, make..."
-	@echo "	make update->commit->patch->[fix]->refresh->unpatch->commit->clean"
-	@echo ""
-	@echo "To work on patch..."
-	@echo "	make patch->[work]->refresh->unpatch->commit->clean"
+	@echo "After updating code..."
+	@echo "	refresh-patch-> commit"
 
-all: install unpatch
+# reverse installed patch (or re-apply it)
+toggle-patch:
+	@cd printer && patch -p2 -t --posix < ./compact.patch
 
-install: patch
-	go install
-
-# to apply patch to work on it or build it
-# noop if patch is already applied (-N -r)
-patch:
-	patch -p1 -N -r /dev/null < ./printer/compact.patch || true
-
-# to remove patches for commiting them or updating upstream code
-unpatch:
-	git co .
-
-# after working on a patch, to update it.
-# use 'quilt add [filename]' for new files (before editing)
+# update patch
 refresh-patch:
-	git diff -u > ./printer/compact.patch
+	diff -u printer/orig/ printer/ \
+		| grep -v '^Only in' > printer/compact.patch || true
 
 # update fmt code from GO sources
-update: check-goroot
-	find ${GOROOT}/src/go/printer -maxdepth 1 -type f \
-		! -name '*_test.go' -exec cp {} ./printer \;
+update-printer: check-goroot
+	@echo Updating from ${GOROOT}/src/go/printer/\*
+	@mkdir -p printer/orig
+	@find ${GOROOT}/src/go/printer -maxdepth 1 -type f \
+		! -name '*_test.go' -exec cp {} ./printer/orig \;
+	@cp ${GOROOT}/VERSION ./printer/
+	@cp printer/orig/* printer/
+	@echo "Remember to re-apply the patch (make toggle-patch)."
 
 check-goroot:
 ifndef GOROOT
 	$(error GOROOT is undefined)
 endif
 
-clean: unpatch
+clean:
+	find . -name '*.orig' -delete
 	rm -f gocompact
