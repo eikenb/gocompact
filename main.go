@@ -16,6 +16,7 @@ import (
 )
 
 const printerMode = printer.UseSpaces | printer.TabIndent
+const stdin = "<stdin>"
 
 var (
 	cfg       = printer.Config{Mode: printerMode, Tabwidth: 4}
@@ -33,7 +34,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = processFile("<stdin>", src)
+		err = processFile(stdin, src)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -60,20 +61,16 @@ func processFile(path string, src []byte) error {
 		return err
 	}
 
-	if !bytes.Equal(res, src) {
-		if *writeFile {
-			err = ioutil.WriteFile(path, res, 0644)
-			if err != nil {
-				return err
-			}
-		} else {
-			_, err := os.Stdout.Write(res)
-			if err != nil {
-				return err
-			}
+	if !*writeFile {
+		_, err = os.Stdout.Write(res)
+	} else if !bytes.Equal(res, src) {
+		err = ioutil.WriteFile(path, res, 0644)
+		if err != nil {
+			return err
 		}
 	}
-	return nil
+
+	return err
 }
 
 func format(filename string, src []byte) ([]byte, error) {
