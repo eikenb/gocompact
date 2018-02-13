@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"flag"
-	"fmt"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -16,7 +16,11 @@ import (
 
 const printerMode = printer.UseSpaces | printer.TabIndent
 
-var cfg = printer.Config{Mode: printerMode, Tabwidth: 4}
+var (
+	cfg       = printer.Config{Mode: printerMode, Tabwidth: 4}
+	writeFile = flag.Bool("w", false,
+		"write back to source file instead of stdout")
+)
 
 func main() {
 	flag.Parse()
@@ -38,21 +42,37 @@ func processFile(path string) error {
 	if err != nil {
 		return err
 	}
-	return format(path, src)
+	res, err := format(path, src)
+	if !bytes.Equal(res, src) {
+		if *writeFile {
+			err = ioutil.WriteFile(path, res, 0644)
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err := os.Stdout.Write(res)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
-func format(filename string, src []byte) error {
+func format(filename string, src []byte) ([]byte, error) {
 	var fset *token.FileSet = token.NewFileSet()
 	file, err := parser.ParseFile(fset, filename, src, parser.ParseComments)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	a, err := imports.FixImports(fset, file, filename)
+	_, err = imports.FixImports(fset, file, filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Println(a, err)
 
-	cfg.Fprint(os.Stdout, fset, file)
-	return nil
+	// cfg.Fprint(os.Stdout, fset, file)
+	var buf bytes.Buffer
+	cfg.Fprint(&buf, fset, file)
+	res := buf.Bytes()
+	return res, nil
 }
