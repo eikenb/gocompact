@@ -9,10 +9,10 @@ import (
 	"log"
 	"os"
 
-	"gocompact/printer"
-
-	// "golang.org/x/tools/imports"
+	"github.com/eikenb/gocompact/printer"
 	"github.com/eikenb/tools/imports"
+	// https://github.com/golang/go/issues/23782
+	// "golang.org/x/tools/imports"
 )
 
 const printerMode = printer.UseSpaces | printer.TabIndent
