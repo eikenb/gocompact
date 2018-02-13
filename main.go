@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"io/ioutil"
 	"os"
