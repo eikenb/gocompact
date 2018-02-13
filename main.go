@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"gocompact/printer"
@@ -25,24 +26,40 @@ var (
 func main() {
 	flag.Parse()
 	paths := flag.Args()
-	for _, path := range paths {
-		err := processFile(path)
+
+	if flag.NArg() == 0 {
+		*writeFile = false
+		src, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
+		}
+		err = processFile("<stdin>", src)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	for _, path := range paths {
+		fp, err := os.Open(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		src, err := ioutil.ReadAll(fp)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = processFile(path, src)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 }
 
-func processFile(path string) error {
-	fp, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	src, err := ioutil.ReadAll(fp)
-	if err != nil {
-		return err
-	}
+func processFile(path string, src []byte) error {
 	res, err := format(path, src)
+	if err != nil {
+		return err
+	}
+
 	if !bytes.Equal(res, src) {
 		if *writeFile {
 			err = ioutil.WriteFile(path, res, 0644)
