@@ -1,7 +1,7 @@
 diff -u printer/orig/nodes.go printer/nodes.go
---- printer/orig/nodes.go	2018-02-13 13:10:11.484125696 -0800
-+++ printer/nodes.go	2018-02-13 13:10:39.079961468 -0800
-@@ -418,6 +418,15 @@
+--- printer/orig/nodes.go	2018-02-17 12:09:55.845850125 -0800
++++ printer/nodes.go	2018-02-17 12:10:08.253783946 -0800
+@@ -429,6 +429,15 @@
  			return
  		}
  	}
@@ -17,7 +17,7 @@ diff -u printer/orig/nodes.go printer/nodes.go
  	// hasComments || !srcIsOneLine
  
  	p.print(blank, lbrace, token.LBRACE, indent)
-@@ -965,8 +974,17 @@
+@@ -993,8 +1002,17 @@
  	}
  }
  
@@ -36,7 +36,7 @@ diff -u printer/orig/nodes.go printer/nodes.go
  	p.print(b.Lbrace, token.LBRACE)
  	p.stmtList(b.List, nindent, true)
  	p.linebreak(p.lineFor(b.Rbrace), 1, ignore, true)
-@@ -1178,7 +1196,18 @@
+@@ -1206,7 +1224,18 @@
  	case *ast.IfStmt:
  		p.print(token.IF)
  		p.controlClause(false, s.Init, s.Cond, nil)
